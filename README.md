@@ -3,7 +3,7 @@ Tensorflow implementation of CVPR 2018 paper [Disentangled Person Image Generati
 
 
 ## Two stages framework
-![alt text](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_adver_comb.svg =400x)
+<img src="https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_adver_comb.svg" alt="Two stages framework" style="width: 400px;"/>
 
 ### Stage-I: reconstruction
 ![alt text](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_recons_large.svg)
