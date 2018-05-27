@@ -17,6 +17,26 @@ Tensorflow implementation of CVPR 2018 paper [Disentangled Person Image Generati
  - Testing data in tf-record format: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market_test_data.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_test_data.zip).
  - Raw data: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market1501_img_pose_attr_seg.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_img_pose.zip) 
 
+## TF-record data preparation steps
+ You can skip this data preparation procedure if directly using the tf-record data files.
+ 1. `cd datasets`
+ 2. `./run_convert_market.sh` to download and convert the original images, poses, attributes, segmentations
+ 3. `./run_convert_DF.sh` to download and convert the original images, poses
+
+ Note: we also provide the convert code for [Market-1501 Attribute](https://github.com/vana77/Market-1501_Attribute) and Market-1501 Segmentation results from [PSPNet](https://github.com/hszhao/PSPNet). These extra info. are provided for further research. In our experiments, pose mask are ontained from pose key-points (see `_getPoseMask` function in convert .py files).
+
+## Training steps
+ 1. Download the tf-record training data.
+ 2. Modify the `log_dir` and `log_dir_pretrain` in the run_market_train.sh/run_DF_train.sh scripts.
+ 3. run run_market_train.sh/run_DF_train.sh 
+ 
+ Note: we use a triplet instead of pair real/fake for adversarial training to keep training more stable.
+
+## Testing steps
+ 1. Download the pretrained models and tf-record testing data.
+ 2. Modify the `log_dir` and `log_dir_pretrain` in the run_market_test.sh/run_DF_test.sh scripts.
+ 3. run run_market_test.sh/run_DF_test.sh 
+
 
 ## Fg/Bg/Pose sampling on Market-1501
 ![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Sampling_market.svg)
