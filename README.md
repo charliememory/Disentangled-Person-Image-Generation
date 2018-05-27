@@ -1,15 +1,15 @@
 # Disentangled-Person-Image-Generation
 Tensorflow implementation of CVPR 2018 paper [Disentangled Person Image Generation](http://homes.esat.kuleuven.be/~liqianma/pdf/CVPR18_Ma_Disentangled_Person_Image_Generation.pdf)
 
-
 ## Two stages framework
-<img src="https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_adver_comb.svg" alt="Two stages framework" width="800" class="center"/>
+<p align="center">
+<img src="https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_adver_comb.svg" width="600"/></p>
 
 ### Stage-I: reconstruction
-![alt text](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_recons_large.svg)
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_recons_large.svg)
 
 ### Stage-II: sampling
-![alt text](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_sampling.svg)
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_Framework_sampling.svg)
 
 ## Resources
  - Pretrained models: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/CVPR18_DPIG/models/Market1501_models.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/CVPR18_DPIG/models/DF_models.zip).
@@ -17,8 +17,24 @@ Tensorflow implementation of CVPR 2018 paper [Disentangled Person Image Generati
  - Testing data in tf-record format: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market_test_data.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_test_data.zip).
  - Raw data: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market1501_img_pose_attr_seg.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_img_pose.zip) 
 
-## TODO list
-- [ ] code/model and results
+
+## Fg/Bg/Pose sampling on Market-1501
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Sampling_market.svg)
+
+## Appearance sampling on DeepFashion dataset
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/supp_DF_sampling_app.svg)
+
+## Pose sampling on DeepFashion dataset
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/supp_DF_sampling_pose.svg)
+
+## Pose interpolation between real images
+ - Between same person:
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_inverse_interpolate.svg)
+ - Between different persons:
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/supp_inverse_interpolate_diff_person.svg)
+
+## Pose guided person image generation
+![](https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_comparison_PG2.svg)
 
 ## Citation
 ```
