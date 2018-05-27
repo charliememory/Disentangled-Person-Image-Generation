@@ -20,7 +20,7 @@ from tensorflow.python.ops import control_flow_ops, sparse_ops
 import models
 from utils import *
 import tflib as lib
-from wgan_gp_128x64 import *
+from wgan_gp import *
 from datasets import market1501, deepfashion, dataset_utils
 
 ##############################################################################################
