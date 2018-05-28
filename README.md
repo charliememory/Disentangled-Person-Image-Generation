@@ -16,6 +16,9 @@ Tensorflow implementation of CVPR 2018 paper [Disentangled Person Image Generati
  - Training data in tf-record format: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market_train_data.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_train_data.zip).
  - Testing data in tf-record format: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market_test_data.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_test_data.zip).
  - Raw data: [Market-1501](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/Market1501_img_pose_attr_seg.zip), [DeepFashion](http://homes.esat.kuleuven.be/~liqianma/NIPS17_PG2/data/DF_img_pose.zip) 
+ - Virtual Market Dataset with 500 ID x 24 images: [VirtualMarket](https://homes.esat.kuleuven.be/~liqianma/CVPR18_DPIG/data/VirtualMarket_500x24.zip)
+<p align="center">
+<img src="https://github.com/charliememory/Disentangled-Person-Image-Generation/blob/master/imgs/Paper_virtual_market_pair.svg" width="600"/></p>
 
 ## TF-record data preparation steps
  You can skip this data preparation procedure if directly using the tf-record data files.
