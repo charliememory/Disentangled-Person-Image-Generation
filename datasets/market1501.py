@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Provides data for the flowers dataset.
+"""Provides data for the Market1501 dataset.
 
-The dataset scripts used to create the dataset can be found at:
+The dataset scripts used to create the dataset is modified from:
 tensorflow/models/slim/datasets/download_and_convert_flowers.py
 """
 
@@ -48,7 +48,7 @@ _ITEMS_TO_DESCRIPTIONS = {
 
 from tensorflow.python.ops import parsing_ops
 def get_split(split_name, dataset_dir, data_name='Market1501', file_pattern=None, reader=None):
-    """Gets a dataset tuple with instructions for reading flowers.
+    """Gets a dataset tuple with instructions for reading Market1501.
 
     Args:
         split_name: A train/validation split name.
@@ -100,12 +100,12 @@ def get_split(split_name, dataset_dir, data_name='Market1501', file_pattern=None
          'pose_mask_r6_1': tf.FixedLenFeature([128*64*1], tf.int64),
          
          'shape': tf.FixedLenFeature([1], tf.int64),
-            'indices_r4_0': tf.VarLenFeature(dtype=tf.int64),
-            'values_r4_0': tf.VarLenFeature(dtype=tf.float32),
-            'indices_r4_1': tf.VarLenFeature(dtype=tf.int64),
-            'values_r4_1': tf.VarLenFeature(dtype=tf.float32),
-         'pose_subs_0': tf.FixedLenFeature([20], tf.float32),
-         'pose_subs_1': tf.FixedLenFeature([20], tf.float32),
+         'indices_r4_0': tf.VarLenFeature(dtype=tf.int64),
+         'values_r4_0': tf.VarLenFeature(dtype=tf.float32),
+         'indices_r4_1': tf.VarLenFeature(dtype=tf.int64),
+         'values_r4_1': tf.VarLenFeature(dtype=tf.float32),
+         # 'pose_subs_0': tf.FixedLenFeature([20], tf.float32),
+         # 'pose_subs_1': tf.FixedLenFeature([20], tf.float32),
          'part_bbox_0': tf.FixedLenFeature([4*37], tf.int64),
          'part_bbox_1': tf.FixedLenFeature([4*37], tf.int64),
          'part_vis_0': tf.FixedLenFeature([1*37], tf.int64),
@@ -132,8 +132,8 @@ def get_split(split_name, dataset_dir, data_name='Market1501', file_pattern=None
         'pose_sparse_r4_0': slim.tfexample_decoder.SparseTensor(indices_key='indices_r4_0', values_key='values_r4_0', shape_key='shape', densify=False),
         'pose_sparse_r4_1': slim.tfexample_decoder.SparseTensor(indices_key='indices_r4_1', values_key='values_r4_1', shape_key='shape', densify=False),
         
-        'pose_subs_0': slim.tfexample_decoder.Tensor('pose_subs_0',shape=[20]),
-        'pose_subs_1': slim.tfexample_decoder.Tensor('pose_subs_1',shape=[20]),
+        # 'pose_subs_0': slim.tfexample_decoder.Tensor('pose_subs_0',shape=[20]),
+        # 'pose_subs_1': slim.tfexample_decoder.Tensor('pose_subs_1',shape=[20]),
         'part_bbox_0': slim.tfexample_decoder.Tensor('part_bbox_0',shape=[4*37]),
         'part_bbox_1': slim.tfexample_decoder.Tensor('part_bbox_1',shape=[4*37]),
         'part_vis_0': slim.tfexample_decoder.Tensor('part_vis_0',shape=[1*37]),

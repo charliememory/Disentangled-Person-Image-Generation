@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Provides data for the flowers dataset.
+"""Provides data for the DeepFashion dataset.
 
-The dataset scripts used to create the dataset can be found at:
+The dataset scripts used to create the dataset is modified from:
 tensorflow/models/slim/datasets/download_and_convert_flowers.py
 """
 
@@ -48,7 +48,7 @@ _ITEMS_TO_DESCRIPTIONS = {
 
 from tensorflow.python.ops import parsing_ops
 def get_split(split_name, dataset_dir, data_name='DeepFashion', file_pattern=None, reader=None):
-    """Gets a dataset tuple with instructions for reading flowers.
+    """Gets a dataset tuple with instructions for reading DeepFashion.
 
     Args:
         split_name: A train/validation split name.
@@ -92,12 +92,8 @@ def get_split(split_name, dataset_dir, data_name='DeepFashion', file_pattern=Non
         'real_data': tf.FixedLenFeature([], tf.int64, default_value=1),
         # 'attrs_0': tf.FixedLenFeature([], tf.int64),
         # 'attrs_1': tf.FixedLenFeature([], tf.int64),
-        # 'pose_peaks_0': tf.FixedLenFeature([16*16*18], tf.float32),
-        # 'pose_peaks_1': tf.FixedLenFeature([16*16*18], tf.float32),
         'pose_peaks_0_rcv': tf.FixedLenFeature([18*3], tf.float32),
         'pose_peaks_1_rcv': tf.FixedLenFeature([18*3], tf.float32),
-        # 'pose_dense_r4_0': tf.FixedLenFeature([256*256*18], tf.float32),
-        # 'pose_dense_r4_1': tf.FixedLenFeature([256*256*18], tf.float32),
         'pose_mask_r4_0': tf.FixedLenFeature([256*256*1], tf.int64),
         'pose_mask_r4_1': tf.FixedLenFeature([256*256*1], tf.int64),
         'pose_mask_r8_0': tf.FixedLenFeature([256*256*1], tf.int64),
@@ -113,14 +109,12 @@ def get_split(split_name, dataset_dir, data_name='DeepFashion', file_pattern=Non
         'indices_r8_1': tf.VarLenFeature(dtype=tf.int64),
         'values_r8_1': tf.VarLenFeature(dtype=tf.float32),
 
-        'pose_subs_0': tf.FixedLenFeature([20], tf.float32),
-        'pose_subs_1': tf.FixedLenFeature([20], tf.float32),
+        # 'pose_subs_0': tf.FixedLenFeature([20], tf.float32),
+        # 'pose_subs_1': tf.FixedLenFeature([20], tf.float32),
         'part_bbox_0': tf.FixedLenFeature([4*37], tf.int64),
         'part_bbox_1': tf.FixedLenFeature([4*37], tf.int64),
         'part_vis_0': tf.FixedLenFeature([1*37], tf.int64),
         'part_vis_1': tf.FixedLenFeature([1*37], tf.int64),
-        # 'roi10_mask_0': tf.FixedLenFeature([256*256*10], tf.int64),
-        # 'roi10_mask_1': tf.FixedLenFeature([256*256*10], tf.int64),
     }
 
     items_to_handlers = {
@@ -133,12 +127,8 @@ def get_split(split_name, dataset_dir, data_name='DeepFashion', file_pattern=Non
         'id_1': slim.tfexample_decoder.Tensor('id_1'),
         # 'attrs_0': slim.tfexample_decoder.Tensor('attrs_0',shape=[]),
         # 'attrs_1': slim.tfexample_decoder.Tensor('attrs_1',shape=[]),
-        # 'pose_peaks_0': slim.tfexample_decoder.Tensor('pose_peaks_0',shape=[16*16*18]),
-        # 'pose_peaks_1': slim.tfexample_decoder.Tensor('pose_peaks_1',shape=[16*16*18]),
         'pose_peaks_0_rcv': slim.tfexample_decoder.Tensor('pose_peaks_0_rcv',shape=[18*3]),
         'pose_peaks_1_rcv': slim.tfexample_decoder.Tensor('pose_peaks_1_rcv',shape=[18*3]),
-        # 'pose_dense_r4_0': slim.tfexample_decoder.Tensor('pose_dense_r4_0',shape=[256*256*18]),
-        # 'pose_dense_r4_1': slim.tfexample_decoder.Tensor('pose_dense_r4_1',shape=[256*256*18]),
         'pose_mask_r4_0': slim.tfexample_decoder.Tensor('pose_mask_r4_0',shape=[256*256*1]),
         'pose_mask_r4_1': slim.tfexample_decoder.Tensor('pose_mask_r4_1',shape=[256*256*1]),
         'pose_mask_r8_0': slim.tfexample_decoder.Tensor('pose_mask_r8_0',shape=[256*256*1]),
@@ -149,8 +139,8 @@ def get_split(split_name, dataset_dir, data_name='DeepFashion', file_pattern=Non
         'pose_sparse_r8_0': slim.tfexample_decoder.SparseTensor(indices_key='indices_r8_0', values_key='values_r8_0', shape_key='shape', densify=False),
         'pose_sparse_r8_1': slim.tfexample_decoder.SparseTensor(indices_key='indices_r8_1', values_key='values_r8_1', shape_key='shape', densify=False),
         
-        'pose_subs_0': slim.tfexample_decoder.Tensor('pose_subs_0',shape=[20]),
-        'pose_subs_1': slim.tfexample_decoder.Tensor('pose_subs_1',shape=[20]),
+        # 'pose_subs_0': slim.tfexample_decoder.Tensor('pose_subs_0',shape=[20]),
+        # 'pose_subs_1': slim.tfexample_decoder.Tensor('pose_subs_1',shape=[20]),
         'part_bbox_0': slim.tfexample_decoder.Tensor('part_bbox_0',shape=[4*37]),
         'part_bbox_1': slim.tfexample_decoder.Tensor('part_bbox_1',shape=[4*37]),
         'part_vis_0': slim.tfexample_decoder.Tensor('part_vis_0',shape=[1*37]),

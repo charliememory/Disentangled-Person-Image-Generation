@@ -594,37 +594,24 @@ class DPIG_subnetSamplePoseRCV_GAN_BodyROI_256(DPIG_PoseRCV_AE_BodyROI_256):
         self.g_loss_embs, self.d_loss_embs = self._gan_loss(self.wgan_gp_encoder, self.Discriminator_encoder_fn, 
                                             D_z_pos, D_z_neg, self.pose_embs, self.G_pose_embs)
 
-        # ## Use the pose to generate person with pretrained generator
-        # with tf.variable_scope("Encoder") as vs:
-        #     pb_list = tf.split(self.part_bbox, self.part_num, axis=1)
-        #     pv_list = tf.split(self.part_vis, self.part_num, axis=1)
-        #     ## Part 1,1-7 (totally 7)
-        #     indices = range(7)
-        #     ## Part 1,8-16 (totally 10)
-        #     # indices = [1] + range(8,17)
-        #     # indices = [0] + range(7,16)
-        #     select_part_bbox = tf.concat([pb_list[i] for i in indices], axis=1)
-        #     select_part_vis = tf.cast(tf.concat([pv_list[i] for i in indices], axis=1), tf.float32)
-        #     # pdb.set_trace()
-        #     self.embs, _, _, _ = models.GeneratorCNN_ID_Encoder_BodyROIVis_FgBgFeaTwoBranch(self.x, self.mask_r6, select_part_bbox, select_part_vis, len(indices), 32, 
-        #                                     self.repeat_num-1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, keep_part_prob=1.0, reuse=False)
-        #     # self.embs, _, _ = models.GeneratorCNN_ID_Encoder_BodyROIVis(self.x, select_part_bbox, select_part_vis, len(indices), 32, 
-        #     #                                 self.repeat_num-1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, keep_part_prob=1.0, reuse=False)
-        #     # self.embs, _, self.Encoder_var = models.GeneratorCNN_ID_Encoder_BodyROI(self.x, self.part_bbox, 7, 32, 
-        #     #                                 self.repeat_num-1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, reuse=False)
+        ## Use the pose to generate person with pretrained generator
+        with tf.variable_scope("Encoder") as vs:
+            pb_list = tf.split(self.part_bbox, self.part_num, axis=1)
+            pv_list = tf.split(self.part_vis, self.part_num, axis=1)
+            ## Part 1-7 (totally 7)
+            indices = range(7)
+            select_part_bbox = tf.concat([pb_list[i] for i in indices], axis=1)
+            self.embs, _, self.Encoder_var = models.GeneratorCNN_ID_Encoder_BodyROI(self.x, select_part_bbox, len(indices), 32, 
+                                            self.repeat_num+1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, keep_part_prob=1.0, reuse=False)
 
-        # self.embs_rep = tf.tile(tf.expand_dims(self.embs,-1), [1, 1, self.img_H*self.img_W])
-        # self.embs_rep = tf.reshape(self.embs_rep, [self.batch_size, -1, self.img_H, self.img_W])
-        # self.embs_rep = nchw_to_nhwc(self.embs_rep)
+        self.embs_rep = tf.tile(tf.expand_dims(self.embs,-1), [1, 1, self.img_H*self.img_W])
+        self.embs_rep = tf.reshape(self.embs_rep, [self.batch_size, -1, self.img_H, self.img_W])
+        self.embs_rep = nchw_to_nhwc(self.embs_rep)
 
-        # ## Use py code to get G_pose_inflated, so the op is out of the graph
-        # self.G_pose_inflated = tf.placeholder(tf.float32, shape=G_pose.get_shape())
-        # with tf.variable_scope("ID_AE") as vs:
-        #     G, _, _ = self.Generator_fn(
-        #             self.embs_rep, self.G_pose_inflated, 
-        #             self.channel, self.z_num, self.repeat_num-1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, reuse=False)
-        # self.G = denorm_img(G, self.data_format)
-
+        with tf.variable_scope("ID_AE") as vs:
+            G, _, self.G_var = self.Generator_fn(
+                    self.embs_rep, self.pose, 
+                    self.channel, self.z_num, self.repeat_num-1, self.conv_hidden_num, self.data_format, activation_fn=tf.nn.relu, reuse=False)
 
         self._define_loss_optim()
         self.summary_op = tf.summary.merge([

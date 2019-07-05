@@ -199,85 +199,6 @@ class WGAN_GP(object):
         lib.ops.linear.unset_weights_stdev()
 
         return tf.reshape(output, [-1, self.G_OUTPUT_DIM])
-        # return output
-
-
-    def VAE_Encoder(self, inputs, z_num, input_dim=3, dim=64, bn=True, nonlinearity=tf.nn.relu, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        batch_size = inputs.get_shape().as_list()[0]
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D(name+'Encoder.1', input_dim, dim, 5, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Encoder.2', dim, 2*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Encoder.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Encoder.3', 2*dim, 4*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Encoder.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Encoder.4', 4*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Encoder.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        # output = tf.reshape(output, [-1, 8*4*8*dim])
-        output = tf.reshape(output, [batch_size, -1])
-        out_mean = lib.ops.linear.Linear(name+'Encoder.Output_mean', output.get_shape().as_list()[-1], z_num, output)
-        out_log_sigma_sq = lib.ops.linear.Linear(name+'Encoder.Output_log_sigma_sq', output.get_shape().as_list()[-1], z_num, output)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return out_mean, out_log_sigma_sq
-
-    def VAE_Decoder(self, inputs, dim=64, bn=True, nonlinearity=tf.nn.relu, is_continuous=True):
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.linear.Linear('Decoder.Input', inputs.get_shape().as_list()[1], 8*4*8*dim, inputs)
-        output = tf.reshape(output, [-1, 8*dim, 8, 4])
-        if bn:
-            output = Batchnorm('Decoder.BN1', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.deconv2d.Deconv2D('Decoder.2', 8*dim, 4*dim, 5, output)
-        if bn:
-            output = Batchnorm('Decoder.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.deconv2d.Deconv2D('Decoder.3', 4*dim, 2*dim, 5, output)
-        if bn:
-            output = Batchnorm('Decoder.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.deconv2d.Deconv2D('Decoder.4', 2*dim, dim, 5, output)
-        if bn:
-            output = Batchnorm('Decoder.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.deconv2d.Deconv2D('Decoder.5', dim, dim, 5, output)
-
-        if is_continuous: ## For continues data (e.g. Freyface), the decoder outputs mu and sigma
-            out_mu = lib.ops.conv2d.Conv2D('Decoder.mu', dim, 3, 5, output, stride=1)
-            out_log_sigma_sq = lib.ops.conv2d.Conv2D('Decoder.log_sigma_sq', dim, 3, 5, output, stride=1)
-        else: ## For not continues data (e.g. MNIST), outputs the G_x directly
-            out_mu = lib.ops.conv2d.Conv2D('Decoder.mu', dim, 3, 5, output, stride=1)
-            out_log_sigma_sq = None
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return out_mu, out_log_sigma_sq
 
 
     def AEDCGANGenerator(self, n_samples, noise=None, dim=64, bn=True, nonlinearity=tf.nn.relu):
@@ -483,29 +404,8 @@ class WGAN_GP(object):
 
         return tf.reshape(output, [-1])
 
-
-    def FCDiscriminator_MAD(self, n_generators, inputs, input_dim, FC_DIM=512, n_layers=3, reuse=False, name=''):
-        output = LeakyReLULayer(name+'Discriminator.Input', input_dim, FC_DIM, inputs)
-        for i in xrange(n_layers):
-            output = LeakyReLULayer(name+'Discriminator.{}'.format(i), FC_DIM, FC_DIM, output)
-        fea = lib.ops.linear.Linear(name+'Discriminator.Fea', FC_DIM, 1, output)
-        output = lib.ops.linear.Linear(name+'Discriminator.Out', FC_DIM, n_generators+1, output)
-
-        return fea, output
-
-    def FCDiscriminatorLinear(self, inputs, input_dim, FC_DIM=512, n_layers=3, reuse=False, name=''):
-        output = lib.ops.linear.Linear(name+'Discriminator.Input'+'.Linear', input_dim, FC_DIM, inputs, initialization='he')
-        for i in xrange(n_layers):
-            output = lib.ops.linear.Linear(name+'Discriminator.{}'.format(i)+'.Linear', FC_DIM, FC_DIM, output, initialization='he')
-        output = lib.ops.linear.Linear(name+'Discriminator.Out', FC_DIM, 1, output)
-
-        return tf.reshape(output, [-1])
-        
-
-
     def DCGANDiscriminator(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
         # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        batch_size = inputs.get_shape().as_list()[0]
         output = inputs
 
         lib.ops.conv2d.set_weights_stdev(0.02)
@@ -530,101 +430,14 @@ class WGAN_GP(object):
             output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
         output = nonlinearity(output)
 
-        # output = tf.reshape(output, [-1, 8*4*8*dim])
-        output = tf.reshape(output, [batch_size, -1])
-        output = lib.ops.linear.Linear(name+'Discriminator.Output', output.get_shape().as_list()[-1], 1, output)
+        output = tf.reshape(output, [-1, 8*4*8*dim])
+        output = lib.ops.linear.Linear(name+'Discriminator.Output', 8*4*8*dim, 1, output)
 
         lib.ops.conv2d.unset_weights_stdev()
         lib.ops.deconv2d.unset_weights_stdev()
         lib.ops.linear.unset_weights_stdev()
 
         return tf.reshape(output, [-1])
-
-    def DCGANDiscriminator_Grow(self, x_real_list, G_in_list, alpha_list, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        ## Note: x_real_list, G_out_list, alpha_list should put High resolution first
-        grow_num = len(alpha_list)
-        input_list = []
-        batch_size, _, img_H, img_W = x_real_list[0].get_shape().as_list()
-        assert img_H/(2**(grow_num))>=16 ## minimal resolution should >= 16x8
-        repeat_num = int(np.log2(img_H)-2) ## minimal feature map should be 8x4 or 8x8
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        for idx in range(grow_num+1):
-            input_list.append(tf.concat([x_real_list[idx], G_in_list[idx]], axis=0)) ## Put High resolution first
-
-        # Encoder
-        cnt = 1
-        for idx in range(repeat_num):
-            # channel_num = max(2**(idx-1),8)*dim
-            channel_num = dim * (idx + 1)
-            if idx<grow_num+1:
-                if 0==idx:
-                    x_fromRGB = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, input_dim, channel_num, 1, input_list[idx], stride=1)
-                    cnt += 1
-                    output = x_fromRGB
-                else:
-                    x_fromRGB = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, input_dim, output.get_shape().as_list()[1], 1, input_list[idx], stride=1)
-                    cnt += 1
-                    output = output*alpha_list[idx-1] + x_fromRGB*(1-alpha_list[idx-1])
-
-            if idx < repeat_num - 2:
-                output = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, output.get_shape().as_list()[1], channel_num, 4, output, stride=2) ## NCHW
-                output = nonlinearity(output)
-                cnt += 1
-            elif idx == repeat_num - 2:
-                output = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, output.get_shape().as_list()[1], channel_num, 4, output, stride=1) ## NCHW
-                output = nonlinearity(output)
-                cnt += 1
-            elif idx == repeat_num - 1:
-                output = tf.reshape(output, [batch_size, -1])
-                output = lib.ops.linear.Linear(name+'Discriminator.Output', output.get_shape().as_list()[-1], 1, output)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref StackGAN++ paper: https://github.com/hanzhanggit/StackGAN-v2/blob/master/examples/StackGAN++.pdf
-    def DCGANDiscriminator_JCU(self, inputs, cond_vec, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        batch_size = inputs.get_shape().as_list()[0]
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.1', input_dim, dim, 5, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.2', dim, 2*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.3', 2*dim, 4*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.4', 4*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = tf.reshape(output, [batch_size, -1])
-        out_NoCond = lib.ops.linear.Linear(name+'Discriminator.Output.NoCond', output.get_shape().as_list()[-1], 1, output)
-        comb = tf.concat([output, cond_vec], -1)
-        out_Cond = lib.ops.linear.Linear(name+'Discriminator.Output.Cond', comb.get_shape().as_list()[-1], 1, comb)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-
-        return tf.reshape(out_NoCond, [-1]), tf.reshape(out_Cond, [-1])
 
     def DCGANDiscriminatorAttr(self, inputs, attr_num, input_dim=3, dim=64, keep_prob=1, bn=True, nonlinearity=LeakyReLU, name=''):
         # output = tf.reshape(inputs, [-1, input_dim, 8, 4])
@@ -660,7 +473,6 @@ class WGAN_GP(object):
     def DCGANDiscriminator_256(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
         # output = tf.reshape(inputs, [-1, input_dim, 256, 256])
         output = inputs
-        batch_size = inputs.get_shape().as_list()[0]
         lib.ops.conv2d.set_weights_stdev(0.02)
         lib.ops.deconv2d.set_weights_stdev(0.02)
         lib.ops.linear.set_weights_stdev(0.02)
@@ -688,108 +500,14 @@ class WGAN_GP(object):
             output = Batchnorm(name+'Discriminator.BN5', [0,2,3], output, self.MODE)
         output = nonlinearity(output)
 
-        # output = lib.ops.conv2d.Conv2D(name+'Discriminator.6', 8*dim, 8*dim, 5, output, stride=2)
-        # if bn:
-        #     output = Batchnorm(name+'Discriminator.BN5', [0,2,3], output, self.MODE)
-        # output = nonlinearity(output)
-
-        output = tf.reshape(output, [batch_size, -1])
-        output = lib.ops.linear.Linear(name+'Discriminator.Output', output.get_shape().as_list()[-1], 1, output)
+        output = tf.reshape(output, [-1, 8*8*8*dim])
+        output = lib.ops.linear.Linear(name+'Discriminator.Output', 8*8*8*dim, 1, output)
 
         lib.ops.conv2d.unset_weights_stdev()
         lib.ops.deconv2d.unset_weights_stdev()
         lib.ops.linear.unset_weights_stdev()
 
         return tf.reshape(output, [-1])
-
-    ## ref StackGAN++ paper: https://github.com/hanzhanggit/StackGAN-v2/blob/master/examples/StackGAN++.pdf
-    def DCGANDiscriminator_JCU_256(self, inputs, cond_vec, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 256, 256])
-        output = inputs
-        batch_size = inputs.get_shape().as_list()[0]
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.1', input_dim, dim, 5, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.2', dim, 2*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.3', 2*dim, 4*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.4', 4*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.5', 8*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN5', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.6', 8*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN6', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = tf.reshape(output, [batch_size, -1])
-        out_NoCond = lib.ops.linear.Linear(name+'Discriminator.Output.NoCond', output.get_shape().as_list()[-1], 1, output)
-        comb = tf.concat([output, cond_vec], -1)
-        out_Cond = lib.ops.linear.Linear(name+'Discriminator.Output.Cond', comb.get_shape().as_list()[-1], 1, comb)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-
-        return tf.reshape(out_NoCond, [-1]), tf.reshape(out_Cond, [-1])
-
-    def DCGANDiscriminatorClassification_256(self, inputs, class_num, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
-        batch_size = inputs.get_shape().as_list()[0]
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.1', input_dim, dim, 5, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.2', dim, 2*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.3', 2*dim, 4*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.4', 4*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D(name+'Discriminator.5', 8*dim, 8*dim, 5, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN5', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = tf.reshape(output, [batch_size, -1])
-        output = lib.ops.linear.Linear(name+'Discriminator.Output', output.get_shape().as_list()[-1], class_num, output)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-
-        return tf.reshape(output, [batch_size, class_num])
 
 
     def DCGANDiscriminatorRegion(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
@@ -857,224 +575,7 @@ class WGAN_GP(object):
 
         return output
 
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_70x70(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
 
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.1', input_dim, dim, 4, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.2', dim, 2*dim, 4, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.3', 2*dim, 4*dim, 4, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.4', 4*dim, 8*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.5', 8*dim, 1, 4, output, stride=1)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_46x46(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.1', input_dim, dim, 4, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.2', dim, 2*dim, 4, output, stride=2)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.3', 2*dim, 4*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.4', 4*dim, 8*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.5', 8*dim, 1, 4, output, stride=1)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_28x28(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.1', input_dim, dim, 4, output, stride=2)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.2', dim, 2*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.3', 2*dim, 4*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.4', 4*dim, 8*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.5', 8*dim, 1, 4, output, stride=1)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_16x16(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.1', input_dim, dim, 4, output, stride=1)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.2', dim, 2*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.3', 2*dim, 4*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.4', 4*dim, 8*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN4', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.5', 8*dim, 1, 4, output, stride=1)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_13x13(self, inputs, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        # output = tf.reshape(inputs, [-1, input_dim, 128, 64])
-        output = inputs
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.1', input_dim, dim, 4, output, stride=1)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.2', dim, 2*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN2', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.3', 2*dim, 4*dim, 4, output, stride=1)
-        if bn:
-            output = Batchnorm(name+'Discriminator.BN3', [0,2,3], output, self.MODE)
-        output = nonlinearity(output)
-
-        output = lib.ops.conv2d.Conv2D_reflect(name+'Discriminator.4', 4*dim, 1, 4, output, stride=1)
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
-
-    ## ref code: https://github.com/affinelayer/pix2pix-tensorflow/blob/master/pix2pix.py#L400
-    ## receptive_field_sizes:https://github.com/phillipi/pix2pix/blob/master/scripts/receptive_field_sizes.m
-    def PatchDiscriminator_GrowTo70x70(self, x_real_list, G_in_list, alpha_list, input_dim=3, dim=64, bn=True, nonlinearity=LeakyReLU, name=''):
-        ## Note: x_real_list, G_out_list, alpha_list should put High resolution first
-        grow_num = len(alpha_list)
-        input_list = []
-        batch_size, _, img_H, img_W = x_real_list[0].get_shape().as_list()
-        assert img_H/(2**(grow_num))>=16 ## minimal resolution should >= 16x8
-        repeat_num = int(np.log2(img_H)-2) ## minimal feature map should be 8x4 or 8x8
-
-        lib.ops.conv2d.set_weights_stdev(0.02)
-        lib.ops.deconv2d.set_weights_stdev(0.02)
-        lib.ops.linear.set_weights_stdev(0.02)
-
-        for idx in range(grow_num+1):
-            input_list.append(tf.concat([x_real_list[idx], G_in_list[idx]], axis=0)) ## Put High resolution first
-
-        # Encoder
-        cnt = 1
-        for idx in range(repeat_num):
-            # channel_num = max(2**(idx-1),8)*dim
-            channel_num = dim * (idx + 1)
-            if idx<grow_num+1:
-                if 0==idx:
-                    x_fromRGB = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, input_dim, channel_num, 1, input_list[idx], stride=1)
-                    cnt += 1
-                    output = x_fromRGB
-                else:
-                    x_fromRGB = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, input_dim, output.get_shape().as_list()[1], 1, input_list[idx], stride=1)
-                    cnt += 1
-                    output = output*alpha_list[idx-1] + x_fromRGB*(1-alpha_list[idx-1])
-
-            if idx < repeat_num - 2:
-                output = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, output.get_shape().as_list()[1], channel_num, 4, output, stride=2) ## NCHW
-                output = nonlinearity(output)
-                cnt += 1
-            elif idx == repeat_num - 2:
-                output = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, output.get_shape().as_list()[1], channel_num, 4, output, stride=1) ## NCHW
-                output = nonlinearity(output)
-                cnt += 1
-            elif idx == repeat_num - 1:
-                output = lib.ops.conv2d.Conv2D(name+'Discriminator.%d'%cnt, output.get_shape().as_list()[1], channel_num, 4, output, stride=1) ## NCHW
-                cnt += 1
-
-        lib.ops.conv2d.unset_weights_stdev()
-        lib.ops.deconv2d.unset_weights_stdev()
-        lib.ops.linear.unset_weights_stdev()
-        return output
 
     def main(self):
         Generator, Discriminator = self.GeneratorAndDiscriminator()
@@ -1092,7 +593,7 @@ class WGAN_GP(object):
                 with tf.device(device):
 
                     real_data = tf.reshape(2*((tf.cast(real_data_conv, tf.float32)/255.)-.5), [self.BATCH_SIZE/len(self.G_OUTPUT_DIM), self.G_OUTPUT_DIM])
-                    fake_data = Generator(self.BATCH_SIZE/len(self.G_OUTPUT_DIM))
+                    fake_data = Generator(self.BATCH_SIZE/len(self.DEVICES))
 
                     disc_real = Discriminator(real_data)
                     disc_fake = Discriminator(fake_data)
@@ -1106,7 +607,7 @@ class WGAN_GP(object):
                         disc_cost = tf.reduce_mean(disc_fake) - tf.reduce_mean(disc_real)
 
                         alpha = tf.random_uniform(
-                            shape=[self.BATCH_SIZE/len(self.G_OUTPUT_DIM),1], 
+                            shape=[self.BATCH_SIZE/len(self.DEVICES),1], 
                             minval=0.,
                             maxval=1.
                         )

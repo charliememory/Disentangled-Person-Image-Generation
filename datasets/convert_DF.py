@@ -999,7 +999,7 @@ def run_one_pair_rec(dataset_dir, out_dir, split_name):
 if __name__ == '__main__':
     dataset_dir = sys.argv[1]
     split_name = sys.argv[2]   ## 'train', 'test', 'test_samples', 'test_seq'
-    out_dir = os.path.join(dataset_dir, 'DF_'+split_name.replace('_flip','')+'_data')
+    out_dir = os.path.join(dataset_dir, 'DF_'+split_name+'_data')
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
     run_one_pair_rec(dataset_dir, out_dir, split_name)
