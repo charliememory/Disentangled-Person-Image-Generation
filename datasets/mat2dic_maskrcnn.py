@@ -57,15 +57,6 @@ def mat2dic(img_dir, pose_mat_path):
     with open(save_path, 'w') as f:
         pickle.dump(pose_dic, f)
 
-img_dir = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/marc/test/'
-pose_mat_path = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/marc/PoseRCV/marc_test.mat'
-mat2dic(img_dir, pose_mat_path)
-img_dir = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/marc/train/'
-pose_mat_path = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/marc/PoseRCV/marc_train.mat'
-mat2dic(img_dir, pose_mat_path)
-img_dir = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/weipeng/test/'
-pose_mat_path = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/weipeng/PoseRCV/weipeng_test.mat'
-mat2dic(img_dir, pose_mat_path)
-img_dir = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/weipeng/train/'
-pose_mat_path = '/esat/diamond/liqianma/datasets/Pose/MPI_CG/white_bg/weipeng/PoseRCV/weipeng_train.mat'
+img_dir = ''
+pose_mat_path = ''
 mat2dic(img_dir, pose_mat_path)

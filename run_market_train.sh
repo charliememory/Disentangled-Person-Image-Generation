@@ -11,8 +11,8 @@ fi
 
 gpu=0
 D_arch='DCGAN'
-log_dir='./logs'
-log_dir_pretrain='/esat/diamond/liqianma/HomepageResources/CVPR18_DPIG/models_original'
+log_dir=your_log_dir_path
+log_dir_pretrain=your_pretrained_log_dir_path
 
 ####################### Stage-I: reconstruction #####################
 ## Fg Bg reconstruction
